@@ -39,43 +39,8 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using the provider
 
-Fill this in for each provider
-
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
-
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-To generate or update documentation, run `go generate`.
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
-```
-
-## Testing the Provider Locally
-
-1. Update the `~/terraformrc`
-
-    ```terraform
-    provider_installation {
-        dev_overrides {
-            "nvidia.com/dev/ngc" = "/home/huaweic/go/bin" # The path of go bin.
-        }
-        # For all other providers, install them directly from their origin provider
-        # registries as normal. If you omit this, Terraform will _only_ use
-        # the dev_overrides block, and so no other providers will be available.
-        direct {}
-    }
-    ```
-
-2. Change debug level `export TF_LOG=DEBUG`
-3. Setup NGC key `export NGC_API_KEY=nvapi-REDACTED`
-4. Test with terraform HCL. Here is an example. Please replace `backend` and `instance_type` by yourselves.
+1. Setup NGC key `export NGC_API_KEY=nvapi-REDACTED`
+2. Write terraform HCL. Here is an example. Please replace `backend` and `instance_type` by yourselves.
 
     ```terraform
         terraform {
@@ -182,6 +147,40 @@ make testacc
             value = data.ngc_cloud_function.terraform-cloud-function-datasource-example
         }
     ```
+## Developing the Provider
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+
+To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+
+To generate or update documentation, run `go generate`.
+
+In order to run the full suite of Acceptance tests, run `make testacc`.
+
+*Note:* Acceptance tests create real resources, and often cost money to run.
+
+```shell
+make testacc
+```
+
+## Testing the Provider Locally
+
+1. Update the `~/terraformrc`
+
+    ```terraform
+    provider_installation {
+        dev_overrides {
+            "nvidia.com/dev/ngc" = "/home/huaweic/go/bin" # The path of go bin.
+        }
+        # For all other providers, install them directly from their origin provider
+        # registries as normal. If you omit this, Terraform will _only_ use
+        # the dev_overrides block, and so no other providers will be available.
+        direct {}
+    }
+    ```
+
+2. Change debug level `export TF_LOG=DEBUG`
+
 
 ## Executing Acceptence Test
 
