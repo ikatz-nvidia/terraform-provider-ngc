@@ -39,8 +39,114 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using the provider
 
-Fill this in for each provider
+1. Setup NGC key `export NGC_API_KEY=nvapi-REDACTED`
+2. Write terraform HCL. Here is an example. Please replace `backend` and `instance_type` by yourselves.
 
+    ```terraform
+    terraform {
+        required_providers {
+            ngc = {
+            source = "nvidia.com/dev/ngc"
+            }
+        }
+    }
+
+    provider "ngc" {
+        ngc_org  = "shhh2i6mga69" # Omniverse Cloud Prod
+        ngc_team = "devinfra"
+    }
+
+    resource "ngc_cloud_function" "helm_based_cloud_function_example" {
+        function_name           = "terraform-cloud-function-resource-example-helm"
+        helm_chart          = "https://helm.ngc.nvidia.com/shhh2i6mga69/devinfra/charts/inference-test-0.1.tgz"
+        helm_chart_service_name = "entrypoint"
+        inference_port = 8000
+        inference_url           = "/echo"
+        health_uri    = "/health"
+        api_body_format         = "CUSTOM"
+        deployment_specifications = [
+            {
+            configuration           = "{\"image\":{\"repository\":\"nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample\",\"tag\":\"latest\"}}",
+            backend                 = "dgxc-forge-az33-prd1"
+            instance_type           = "DGX-CLOUD.GPU.L40_1x"
+            gpu_type                = "L40"
+            max_instances           = 1
+            min_instances           = 1
+            max_request_concurrency = 1
+            }
+        ]
+    }
+
+    resource "ngc_cloud_function" "helm_based_cloud_function_example_version" {
+        function_name           = ngc_cloud_function.helm_based_cloud_function_example.function_name
+        function_id             = ngc_cloud_function.helm_based_cloud_function_example.id
+        helm_chart          = "https://helm.ngc.nvidia.com/shhh2i6mga69/devinfra/charts/inference-test-0.1.tgz"
+        helm_chart_service_name = "entrypoint"
+        inference_port = 8000
+        inference_url           = "/echo"
+        health_uri    = "/health"
+        api_body_format         = "CUSTOM"
+        deployment_specifications = [
+            {
+            configuration           = "{\"image\":{\"repository\":\"nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample\",\"tag\":\"latest\"}}",
+            backend                 = "dgxc-forge-az33-prd1"
+            instance_type           = "DGX-CLOUD.GPU.L40_1x"
+            gpu_type                = "L40"
+            max_instances           = 1
+            min_instances           = 1
+            max_request_concurrency = 1
+            }
+        ]
+    }
+
+    resource "ngc_cloud_function" "container_based_cloud_function_example" {
+        function_name        = "terraform-cloud-function-resource-example-container"
+        container_image  = "nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample:latest"
+        inference_port       = 8000
+        inference_url        = "/echo"
+        health_uri = "/health"
+        api_body_format      = "CUSTOM"
+        deployment_specifications = [
+            {
+            backend                 = "dgxc-forge-az33-prd1"
+            instance_type           = "DGX-CLOUD.GPU.L40_1x"
+            gpu_type                = "L40"
+            max_instances           = 1
+            min_instances           = 1
+            max_request_concurrency = 1
+            }
+        ]
+    }
+
+    resource "ngc_cloud_function" "container_based_cloud_function_example_version" {
+        function_name        = ngc_cloud_function.container_based_cloud_function_example.function_name
+        function_id          = ngc_cloud_function.container_based_cloud_function_example.id
+        container_image  = "nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample:latest"
+        inference_port       = 8000
+        inference_url        = "/echo"
+        health_uri = "/health"
+        api_body_format      = "CUSTOM"
+        deployment_specifications = [
+            {
+            backend                 = "dgxc-forge-az33-prd1"
+            instance_type           = "DGX-CLOUD.GPU.L40_1x"
+            gpu_type                = "L40"
+            max_instances           = 1
+            min_instances           = 1
+            max_request_concurrency = 1
+            }
+        ]
+    }
+
+    data "ngc_cloud_function" "terraform-cloud-function-datasource-example" {
+        function_id = "fe97aa46-c8ea-4237-ba56-1212036f4d0f"
+        version_id  = "868d2192-6819-4b53-89f5-3c7fb1df2a72"
+    }
+
+    output "function_details" {
+        value = data.ngc_cloud_function.terraform-cloud-function-datasource-example
+    }
+    ```
 ## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
@@ -74,114 +180,7 @@ make testacc
     ```
 
 2. Change debug level `export TF_LOG=DEBUG`
-3. Setup NGC key `export NGC_API_KEY=nvapi-REDACTED`
-4. Test with terraform HCL. Here is an example. Please replace `backend` and `instance_type` by yourselves.
 
-    ```terraform
-        terraform {
-            required_providers {
-                ngc = {
-                source = "nvidia.com/dev/ngc"
-                }
-            }
-        }
-
-        provider "ngc" {
-            ngc_org  = "shhh2i6mga69" # Omniverse Cloud Prod
-            ngc_team = "devinfra"
-        }
-
-        resource "ngc_cloud_function" "helm_based_cloud_function_example" {
-            function_name           = "terraform-cloud-function-resource-example-helm"
-            helm_chart          = "https://helm.ngc.nvidia.com/shhh2i6mga69/devinfra/charts/inference-test-0.1.tgz"
-            helm_chart_service_name = "entrypoint"
-            inference_port = 8000
-            inference_url           = "/echo"
-            health_uri    = "/health"
-            api_body_format         = "CUSTOM"
-            deployment_specifications = [
-                {
-                configuration           = "{\"image\":{\"repository\":\"nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample\",\"tag\":\"latest\"}}",
-                backend                 = "dgxc-forge-az33-prd1"
-                instance_type           = "DGX-CLOUD.GPU.L40_1x"
-                gpu_type                = "L40"
-                max_instances           = 1
-                min_instances           = 1
-                max_request_concurrency = 1
-                }
-            ]
-        }
-
-        resource "ngc_cloud_function" "helm_based_cloud_function_example_version" {
-            function_name           = ngc_cloud_function.helm_based_cloud_function_example.function_name
-            function_id             = ngc_cloud_function.helm_based_cloud_function_example.id
-            helm_chart          = "https://helm.ngc.nvidia.com/shhh2i6mga69/devinfra/charts/inference-test-0.1.tgz"
-            helm_chart_service_name = "entrypoint"
-            inference_port = 8000
-            inference_url           = "/echo"
-            health_uri    = "/health"
-            api_body_format         = "CUSTOM"
-            deployment_specifications = [
-                {
-                configuration           = "{\"image\":{\"repository\":\"nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample\",\"tag\":\"latest\"}}",
-                backend                 = "dgxc-forge-az33-prd1"
-                instance_type           = "DGX-CLOUD.GPU.L40_1x"
-                gpu_type                = "L40"
-                max_instances           = 1
-                min_instances           = 1
-                max_request_concurrency = 1
-                }
-            ]
-        }
-
-        resource "ngc_cloud_function" "container_based_cloud_function_example" {
-            function_name        = "terraform-cloud-function-resource-example-container"
-            container_image  = "nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample:latest"
-            inference_port       = 8000
-            inference_url        = "/echo"
-            health_uri = "/health"
-            api_body_format      = "CUSTOM"
-            deployment_specifications = [
-                {
-                backend                 = "dgxc-forge-az33-prd1"
-                instance_type           = "DGX-CLOUD.GPU.L40_1x"
-                gpu_type                = "L40"
-                max_instances           = 1
-                min_instances           = 1
-                max_request_concurrency = 1
-                }
-            ]
-        }
-
-        resource "ngc_cloud_function" "container_based_cloud_function_example_version" {
-            function_name        = ngc_cloud_function.container_based_cloud_function_example.function_name
-            function_id          = ngc_cloud_function.container_based_cloud_function_example.id
-            container_image  = "nvcr.io/shhh2i6mga69/devinfra/fastapi_echo_sample:latest"
-            inference_port       = 8000
-            inference_url        = "/echo"
-            health_uri = "/health"
-            api_body_format      = "CUSTOM"
-            deployment_specifications = [
-                {
-                backend                 = "dgxc-forge-az33-prd1"
-                instance_type           = "DGX-CLOUD.GPU.L40_1x"
-                gpu_type                = "L40"
-                max_instances           = 1
-                min_instances           = 1
-                max_request_concurrency = 1
-                }
-            ]
-        }
-
-        data "ngc_cloud_function" "terraform-cloud-function-datasource-example" {
-            function_id = "fe97aa46-c8ea-4237-ba56-1212036f4d0f"
-            version_id  = "868d2192-6819-4b53-89f5-3c7fb1df2a72"
-        }
-
-        output "function_details" {
-            value = data.ngc_cloud_function.terraform-cloud-function-datasource-example
-        }
-    ```
 
 ## Executing Acceptence Test
 
